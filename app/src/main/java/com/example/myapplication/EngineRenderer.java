@@ -49,6 +49,7 @@ public class EngineRenderer implements GLSurfaceView.Renderer
     private final FloatBuffer mTriangle1Vertices;
     private final FloatBuffer mTriangle2Vertices;
     private final FloatBuffer mTriangle3Vertices;
+    float amount=0.0f;
 
     /** This will be used to pass in the transformation matrix. */
     private int mMVPMatrixHandle;
@@ -89,7 +90,7 @@ public class EngineRenderer implements GLSurfaceView.Renderer
                 // X, Y, Z,
                 // R, G, B, A
                 -0.5f, -0.25f, 0.0f,
-                1.0f, 0.0f, 0.0f, 1.0f,
+                1.0f, 0.0f, 0.0f, 0.5f,
 
                 0.5f, -0.25f, 0.0f,
                 0.0f, 0.0f, 1.0f, 1.0f,
@@ -161,7 +162,7 @@ public class EngineRenderer implements GLSurfaceView.Renderer
         // NOTE: In OpenGL 1, a ModelView matrix is used, which is a combination of a model and
         // view matrix. In OpenGL 2, we can keep track of these matrices separately if we choose.
         Matrix.setLookAtM(mViewMatrix, 0, eyeX, eyeY, eyeZ, lookX, lookY, lookZ, upX, upY, upZ);
-
+        //Matrix.translateM(mViewMatrix, 0, -1.0f, -1.0f, 0.0f);
         final String vertexShader =
 
                 "uniform mat4 u_MVPMatrix;      \n"		// A constant representing the combined model/view/projection matrix.
@@ -306,7 +307,10 @@ public class EngineRenderer implements GLSurfaceView.Renderer
         final float near = 1.0f;
         final float far = 10.0f;
 
-        Matrix.frustumM(mProjectionMatrix, 0, left, right, bottom, top, near, far);
+
+        //Matrix.frustumM(mProjectionMatrix, 0, left, right, bottom, top, near, far);
+        //set an orthographic projection for 3d game rendering, we dont want size changing on z axis
+        Matrix.orthoM(mProjectionMatrix, 0, left, right, bottom, top, near, far);
     }
 
     @Override
@@ -317,10 +321,12 @@ public class EngineRenderer implements GLSurfaceView.Renderer
         // Do a complete rotation every 10 seconds.
         long time = SystemClock.uptimeMillis() % 10000L;
         float angleInDegrees = (360.0f / 10000.0f) * ((int) time);
+        amount =0.001f;
+
 
         // Draw the triangle facing straight on.
         Matrix.setIdentityM(mModelMatrix, 0);
-        Matrix.rotateM(mModelMatrix, 0, angleInDegrees, 0.0f, 0.0f, 1.0f);
+        Matrix.rotateM(mModelMatrix, 0, angleInDegrees, 0.0f, 1.0f, 0.0f);
         drawTriangle(mTriangle1Vertices);
 
         // Draw one translated a bit down and rotated to be flat on the ground.
