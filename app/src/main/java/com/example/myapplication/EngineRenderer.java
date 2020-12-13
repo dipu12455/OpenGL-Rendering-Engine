@@ -332,14 +332,14 @@ public class EngineRenderer implements GLSurfaceView.Renderer
         // Draw one translated a bit down and rotated to be flat on the ground.
         Matrix.setIdentityM(mModelMatrix, 0);
         Matrix.translateM(mModelMatrix, 0, 0.0f, -1.0f, 0.0f);
-        Matrix.rotateM(mModelMatrix, 0, 90.0f, 1.0f, 0.0f, 0.0f);
+        Matrix.rotateM(mModelMatrix, 0, 45.0f, 1.0f, 0.0f, 0.0f);
         Matrix.rotateM(mModelMatrix, 0, angleInDegrees, 0.0f, 0.0f, 1.0f);
         drawTriangle(mTriangle2Vertices);
 
         // Draw one translated a bit to the right and rotated to be facing to the left.
         Matrix.setIdentityM(mModelMatrix, 0);
         Matrix.translateM(mModelMatrix, 0, 1.0f, 0.0f, 0.0f);
-        Matrix.rotateM(mModelMatrix, 0, 90.0f, 0.0f, 1.0f, 0.0f);
+        Matrix.rotateM(mModelMatrix, 0, 45.0f, 0.0f, 1.0f, 0.0f);
         Matrix.rotateM(mModelMatrix, 0, angleInDegrees, 0.0f, 0.0f, 1.0f);
         drawTriangle(mTriangle3Vertices);
     }
