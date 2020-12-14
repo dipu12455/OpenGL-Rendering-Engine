@@ -3,6 +3,7 @@ package com.example.myapplication;
 import android.os.Bundle;
 
 import android.app.Activity;
+import android.view.MotionEvent;
 import android.view.View;
 
 public class MainActivity extends Activity {
@@ -48,6 +49,18 @@ public class MainActivity extends Activity {
                             | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);  //this line is api 19+
 
         }
+    }
+    @Override
+    //setting up touch listener
+    public boolean onTouchEvent(MotionEvent e){
+        //yahui!!! my first ever touch event bruv yeah!
+        //MotionEvent reports input details from the touch screen
+        // and other input controls. In this case, you are only
+        //interested in events where the touch positions changed
+
+        engine.touchActivated(e);
+
+        return true;
     }
 
 }

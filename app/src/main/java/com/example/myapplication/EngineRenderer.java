@@ -4,6 +4,7 @@ import android.opengl.GLES30;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 import android.os.SystemClock;
+import android.view.MotionEvent;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -77,6 +78,9 @@ public class EngineRenderer implements GLSurfaceView.Renderer
 
     /** Size of the color data in elements. */
     private final int mColorDataSize = 4;
+
+    //Variables for touch input
+    private float angleInDegrees=45;
 
     /**
      * Initialize the model data.
@@ -320,7 +324,7 @@ public class EngineRenderer implements GLSurfaceView.Renderer
 
         // Do a complete rotation every 10 seconds.
         long time = SystemClock.uptimeMillis() % 10000L;
-        float angleInDegrees = (360.0f / 10000.0f) * ((int) time);
+        //float angleInDegrees = (360.0f / 10000.0f) * ((int) time);
         amount =0.001f;
 
 
@@ -375,5 +379,9 @@ public class EngineRenderer implements GLSurfaceView.Renderer
 
         GLES30.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, mMVPMatrix, 0);
         GLES30.glDrawArrays(GLES30.GL_TRIANGLES, 0, 3);
+    }
+
+    void addAngle(float _angle){
+        angleInDegrees += _angle;
     }
 }
