@@ -2,6 +2,10 @@ package com.example.myapplication;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.opengl.GLES30;
+import android.opengl.GLUtils;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -13,6 +17,7 @@ import android.content.pm.ConfigurationInfo;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
 
@@ -22,18 +27,27 @@ public class Engine {
      */
     private GLSurfaceView mGLSurfaceView;
     private Context context;
+    EngineRenderer engineRenderer;
+    private final float TOUCH_SCALE_FACTOR = 180.0f/320;
+    private float previousX;
+    private float previousY;
 
 
     boolean engineInit(Context _context) {
         context = _context;
         mGLSurfaceView = new GLSurfaceView(context);
+        engineRenderer = new EngineRenderer(context); //so far, this passing in of context is only
+        //used so that the loadTexture method can work
 
         if (detectOpenGLES30()) {
             // Tell the surface view we want to create an OpenGL ES 3.0-compatible
             // context, and set an OpenGL ES 3.0-compatible renderer.
             mGLSurfaceView.setEGLContextClientVersion(3);
             // Set the renderer to our demo renderer, defined below.
-            mGLSurfaceView.setRenderer(new EngineRenderer());
+            mGLSurfaceView.setRenderer(engineRenderer);
+
+
+
         } else {
             // This is where you could create an OpenGL ES 2.0 and/or 1.x compatible
             // renderer if you wanted to support both ES 1 and ES 2.
@@ -63,6 +77,27 @@ public class Engine {
     void onPause() {// The activity's onPause() must call the GL surface view's onPause()
     mGLSurfaceView.onPause();
     }
+
+    void touchActivated(MotionEvent e){
+        float x = e.getX();
+        float y = e.getY();
+        switch (e.getAction()) {
+            case MotionEvent.ACTION_MOVE:
+
+                float dx = x - previousX;
+                float dy = y - previousY;
+
+                engineRenderer.addAngle((dx + dy) * TOUCH_SCALE_FACTOR);
+
+                break;
+
+        }
+
+        previousX = x;
+        previousY= y;
+    }
+
+
 
 
 }
