@@ -2,6 +2,10 @@ package com.example.myapplication;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.opengl.GLES30;
+import android.opengl.GLUtils;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -23,7 +27,7 @@ public class Engine {
      */
     private GLSurfaceView mGLSurfaceView;
     private Context context;
-    EngineRenderer engineRenderer = new EngineRenderer();
+    EngineRenderer engineRenderer;
     private final float TOUCH_SCALE_FACTOR = 180.0f/320;
     private float previousX;
     private float previousY;
@@ -32,6 +36,8 @@ public class Engine {
     boolean engineInit(Context _context) {
         context = _context;
         mGLSurfaceView = new GLSurfaceView(context);
+        engineRenderer = new EngineRenderer(context); //so far, this passing in of context is only
+        //used so that the loadTexture method can work
 
         if (detectOpenGLES30()) {
             // Tell the surface view we want to create an OpenGL ES 3.0-compatible
@@ -39,6 +45,8 @@ public class Engine {
             mGLSurfaceView.setEGLContextClientVersion(3);
             // Set the renderer to our demo renderer, defined below.
             mGLSurfaceView.setRenderer(engineRenderer);
+
+
 
         } else {
             // This is where you could create an OpenGL ES 2.0 and/or 1.x compatible
@@ -88,5 +96,8 @@ public class Engine {
         previousX = x;
         previousY= y;
     }
+
+
+
 
 }

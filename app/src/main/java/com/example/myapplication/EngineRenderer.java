@@ -1,7 +1,11 @@
 package com.example.myapplication;
 
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.opengl.GLES30;
 import android.opengl.GLSurfaceView;
+import android.opengl.GLUtils;
 import android.opengl.Matrix;
 import android.os.SystemClock;
 import android.view.MotionEvent;
@@ -82,10 +86,29 @@ public class EngineRenderer implements GLSurfaceView.Renderer
     //Variables for touch input
     private float angleInDegrees=45;
 
+    //texture data
+
+    //context
+    Context context;
+    /** Store our model data in a float buffer. */
+    private final FloatBuffer mCubeTextureCoordinates;
+
+    /** This will be used to pass in the texture. */
+    private int mTextureUniformHandle;
+
+    /** This will be used to pass in model texture coordinate information. */
+    private int mTextureCoordinateHandle;
+
+    /** Size of the texture coordinate data in elements. */
+    private final int mTextureCoordinateDataSize = 2;
+
+    /** This is a handle to our texture data. */
+    private int mTextureDataHandle;
+
     /**
      * Initialize the model data.
      */
-    public EngineRenderer()
+    public EngineRenderer(Context _context)
     {
         // Define points for equilateral triangles.
 
@@ -128,6 +151,15 @@ public class EngineRenderer implements GLSurfaceView.Renderer
                 0.0f, 0.559016994f, 0.0f,
                 0.0f, 0.0f, 0.0f, 1.0f};
 
+        //texture coordinates
+        final float[] cubeTextureCoordinateData =
+                {
+                        // Front face
+                        0.0f, 0.0f,
+                        0.0f, 1.0f,
+                        1.0f, 0.0f
+                };
+
         // Initialize the buffers.
         mTriangle1Vertices = ByteBuffer.allocateDirect(triangle1VerticesData.length * mBytesPerFloat)
                 .order(ByteOrder.nativeOrder()).asFloatBuffer();
@@ -139,6 +171,12 @@ public class EngineRenderer implements GLSurfaceView.Renderer
         mTriangle1Vertices.put(triangle1VerticesData).position(0);
         mTriangle2Vertices.put(triangle2VerticesData).position(0);
         mTriangle3Vertices.put(triangle3VerticesData).position(0);
+
+        mCubeTextureCoordinates = ByteBuffer.allocateDirect(cubeTextureCoordinateData.length *
+                mBytesPerFloat).order(ByteOrder.nativeOrder()).asFloatBuffer();
+        mCubeTextureCoordinates.put(cubeTextureCoordinateData).position(0);
+
+        context = _context;
     }
 
     @Override
@@ -174,10 +212,15 @@ public class EngineRenderer implements GLSurfaceView.Renderer
                         + "attribute vec4 a_Position;     \n"		// Per-vertex position information we will pass in.
                         + "attribute vec4 a_Color;        \n"		// Per-vertex color information we will pass in.
 
+                        + "attribute vec2 a_texCoord;     \n"       // Per-vertex texture coordinate will pass in
+
                         + "varying vec4 v_Color;          \n"		// This will be passed into the fragment shader.
+
+                        + "varying vec2 v_texCoord;       \n"       //This will be passed into the fragment shader.
 
                         + "void main()                    \n"		// The entry point for our vertex shader.
                         + "{                              \n"
+                        + "   v_texCoord = a_texCoord;    \n"
                         + "   v_Color = a_Color;          \n"		// Pass the color through to the fragment shader.
                         // It will be interpolated across the triangle.
                         + "   gl_Position = u_MVPMatrix   \n" 	// gl_Position is a special variable used to store the final position.
@@ -188,11 +231,14 @@ public class EngineRenderer implements GLSurfaceView.Renderer
 
                 "precision mediump float;       \n"		// Set the default precision to medium. We don't need as high of a
                         // precision in the fragment shader.
+                        + "uniform sampler2D u_Texture; \n" //the input texture
+
                         + "varying vec4 v_Color;          \n"		// This is the color from the vertex shader interpolated across the
+                        + "varying vec2 v_texCoord;       \n"       // interpolated texture coordinate
                         // triangle per fragment.
                         + "void main()                    \n"		// The entry point for our fragment shader.
                         + "{                              \n"
-                        + "   gl_FragColor = v_Color;     \n"		// Pass the color directly through the pipeline.
+                        + "   gl_FragColor = v_Color * texture2D(u_Texture, v_texCoord);     \n"		// Pass the color directly through the pipeline.
                         + "}                              \n";
 
         // Load in the vertex shader.
@@ -265,6 +311,7 @@ public class EngineRenderer implements GLSurfaceView.Renderer
             // Bind attributes
             GLES30.glBindAttribLocation(programHandle, 0, "a_Position");
             GLES30.glBindAttribLocation(programHandle, 1, "a_Color");
+            GLES30.glBindAttribLocation(programHandle,2,"a_texCoord");
 
             // Link the two shaders together into a program.
             GLES30.glLinkProgram(programHandle);
@@ -291,8 +338,23 @@ public class EngineRenderer implements GLSurfaceView.Renderer
         mPositionHandle = GLES30.glGetAttribLocation(programHandle, "a_Position");
         mColorHandle = GLES30.glGetAttribLocation(programHandle, "a_Color");
 
+        mTextureUniformHandle = GLES30.glGetUniformLocation(programHandle, "u_Texture");
+        mTextureCoordinateHandle = GLES30.glGetAttribLocation(programHandle,"a_texCoord");
+
+        // Set the active texture unit to texture unit 0.
+        GLES30.glActiveTexture(GLES30.GL_TEXTURE0);
+
+        //Bind the texture to this unit
+        GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, mTextureDataHandle);
+
+        // Tell the texture uniform sampler to use this texture in the shader by binding to texture unit 0.
+        GLES30.glUniform1i(mTextureUniformHandle, 0);
+
         // Tell OpenGL to use this program when rendering.
         GLES30.glUseProgram(programHandle);
+
+        // Load the texture
+        mTextureDataHandle = loadTexture(context, R.drawable.tex);
     }
 
     @Override
@@ -369,6 +431,13 @@ public class EngineRenderer implements GLSurfaceView.Renderer
 
         GLES30.glEnableVertexAttribArray(mColorHandle);
 
+        // Pass in the texture coordinate information
+        mCubeTextureCoordinates.position(0);
+        GLES30.glVertexAttribPointer(mTextureCoordinateHandle, mTextureCoordinateDataSize, GLES30.GL_FLOAT, false,
+                0, mCubeTextureCoordinates);
+
+        GLES30.glEnableVertexAttribArray(mTextureCoordinateHandle);
+
         // This multiplies the view matrix by the model matrix, and stores the result in the MVP matrix
         // (which currently contains model * view).
         Matrix.multiplyMM(mMVPMatrix, 0, mViewMatrix, 0, mModelMatrix, 0);
@@ -384,4 +453,45 @@ public class EngineRenderer implements GLSurfaceView.Renderer
     void addAngle(float _angle){
         angleInDegrees += _angle;
     }
+
+    void setTexture(int textureHandle){
+        mTextureDataHandle = textureHandle;
+    }
+
+    public static int loadTexture(final Context context, final int resourceId)
+    {
+        final int[] textureHandle = new int[1];
+
+        GLES30.glGenTextures(1, textureHandle, 0);
+
+        if (textureHandle[0] != 0)
+        {
+            final BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inScaled = false;   // No pre-scaling
+
+            // Read in the resource
+            final Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), resourceId, options);
+
+            // Bind to the texture in OpenGL
+            GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, textureHandle[0]);
+
+            // Set filtering
+            GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MIN_FILTER, GLES30.GL_NEAREST);
+            GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MAG_FILTER, GLES30.GL_NEAREST);
+
+            // Load the bitmap into the bound texture.
+            GLUtils.texImage2D(GLES30.GL_TEXTURE_2D, 0, bitmap, 0);
+
+            // Recycle the bitmap, since its data has been loaded into OpenGL.
+            bitmap.recycle();
+        }
+
+        if (textureHandle[0] == 0)
+        {
+            throw new RuntimeException("Error loading texture.");
+        }
+
+        return textureHandle[0];
+    }
+
 }
