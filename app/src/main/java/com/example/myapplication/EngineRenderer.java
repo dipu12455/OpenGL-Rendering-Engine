@@ -102,8 +102,9 @@ public class EngineRenderer implements GLSurfaceView.Renderer
     /** Size of the texture coordinate data in elements. */
     private final int mTextureCoordinateDataSize = 2;
 
-    /** This is a handle to our texture data. */
-    private int mTextureDataHandle;
+    /** This is a handle (representer) to our texture data. */
+    private int mTexture01;
+
 
     /**
      * Initialize the model data.
@@ -176,12 +177,21 @@ public class EngineRenderer implements GLSurfaceView.Renderer
                 mBytesPerFloat).order(ByteOrder.nativeOrder()).asFloatBuffer();
         mCubeTextureCoordinates.put(cubeTextureCoordinateData).position(0);
 
+        //Receive context and then load all textures
         context = _context;
+
     }
 
     @Override
     public void onSurfaceCreated(GL10 glUnused, EGLConfig config)
     {
+        //Don't load texture in the class constructor, use the method onSurfaceCreated, which
+        //should be used to initialize other opengl related objects as well
+
+        // Load the texture, mTextureDataHandle is simply an int that represents a texture stored in
+        //opengl
+        mTexture01 = loadTexture(context, R.drawable.steve);
+
         // Set the background clear color to gray.
         GLES30.glClearColor(0.5f, 0.5f, 0.5f, 0.5f);
 
@@ -341,20 +351,33 @@ public class EngineRenderer implements GLSurfaceView.Renderer
         mTextureUniformHandle = GLES30.glGetUniformLocation(programHandle, "u_Texture");
         mTextureCoordinateHandle = GLES30.glGetAttribLocation(programHandle,"a_texCoord");
 
+        // Tell the texture uniform sampler to use this texture in the shader by binding to texture unit 0.
+        //Any changes made to this texture unit will be picked up by shader and rendered, which means
+        //we are telling the shader to look at this unit if it needs anything, via this uniform
+        //variable
+        GLES30.glUniform1i(mTextureUniformHandle, 0);
+
+        // Tell OpenGL to use this program when rendering. when all the program handles have been
+        //initialized above, then tell opengl to use this program.
+        GLES30.glUseProgram(programHandle);
+
+        //Now is the rendering sequence when drawing textures
+        //1. set an active texture unit, for this one its unit 0. Always use only one texture unit.
+        //a texture unit is like a holding place for a texture currently being used to draw.
+        //Then when drawing another texture, bind that texture to this unit overwriting the
+        //previous one, then shader simply continues to render that, naturally reflecting the change.
+
         // Set the active texture unit to texture unit 0.
         GLES30.glActiveTexture(GLES30.GL_TEXTURE0);
 
         //Bind the texture to this unit
-        GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, mTextureDataHandle);
-
-        // Tell the texture uniform sampler to use this texture in the shader by binding to texture unit 0.
-        GLES30.glUniform1i(mTextureUniformHandle, 0);
-
-        // Tell OpenGL to use this program when rendering.
-        GLES30.glUseProgram(programHandle);
-
-        // Load the texture
-        mTextureDataHandle = loadTexture(context, R.drawable.tex);
+        GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, mTexture01);
+        //The above two methods are placed in the rendering loop.
+        //1. render one triangle, bind texture to the unit, render the texture
+        //2. render another triangle, bind texture to the unit, render the texture
+        //..continue, each time it is only the mTextureDataHandle variable that changes, since
+        //it is an integer pointing to different textures stored in opengl. specify what texture
+        //you want right after the particular triangle has been drawn
     }
 
     @Override
@@ -452,10 +475,6 @@ public class EngineRenderer implements GLSurfaceView.Renderer
 
     void addAngle(float _angle){
         angleInDegrees += _angle;
-    }
-
-    void setTexture(int textureHandle){
-        mTextureDataHandle = textureHandle;
     }
 
     public static int loadTexture(final Context context, final int resourceId)
