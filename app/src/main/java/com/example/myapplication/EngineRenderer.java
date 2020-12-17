@@ -13,6 +13,7 @@ import android.view.MotionEvent;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
+import java.util.ArrayList;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -116,6 +117,10 @@ public class EngineRenderer implements GLSurfaceView.Renderer
     //Initialize sprites
     Sprite sprite01=new Sprite();
 
+    //sprite array
+    ArrayList<Sprite> spriteList = new ArrayList<>();
+    int numberOfSprites = 100;
+
     /**
      * Initialize the model data.
      */
@@ -190,6 +195,12 @@ public class EngineRenderer implements GLSurfaceView.Renderer
         //Receive context and then load all textures
         context = _context;
 
+        //create the sprite
+        for (int i = 0;i<numberOfSprites;i++){
+            Sprite temp = new Sprite();//create the sprite
+            spriteList.add(temp); //add the sprite to the list
+        }
+
     }
 
     @Override
@@ -205,6 +216,11 @@ public class EngineRenderer implements GLSurfaceView.Renderer
         //texture for the first sprite, texture is stored in itself, but loading has to be done
         //here
         sprite01.loadTextureInSprite(loadTexture(context,R.drawable.steve));
+
+        //bind sprite with a texture
+        for (int i=0;i<numberOfSprites;i++){
+            spriteList.get(i).loadTextureInSprite(loadTexture(context,R.drawable.steve));
+        }
 
         // Set the background clear color to gray.
         GLES30.glClearColor(0.5f, 0.5f, 0.5f, 0.5f);
@@ -411,10 +427,12 @@ public class EngineRenderer implements GLSurfaceView.Renderer
         // Do a complete rotation every 10 seconds.
         long time = SystemClock.uptimeMillis() % 10000L;
         //float angleInDegrees = (360.0f / 10000.0f) * ((int) time);
-        amount =0.001f;
+        float scaleAmount = 0.1f;
 
         //update the sprite
         sprite01.update();
+
+
 
         //the order of transformation should be translate, rotate and scale
 
@@ -424,11 +442,27 @@ public class EngineRenderer implements GLSurfaceView.Renderer
         //it's not incremental
         Matrix.translateM(mModelMatrix, 0,sprite01.getX(),sprite01.getY(),0);
         Matrix.rotateM(mModelMatrix, 0, angleInDegrees, 0.0f, 0.0f, 1.0f);
-        float scaleAmount = 0.1f;
+
         Matrix.scaleM(mModelMatrix,0,scaleAmount,scaleAmount,scaleAmount);
         drawTriangle(sprite01.getTriangle1(),sprite01.getTexture(),sprite01.getTexCoord1());
         drawTriangle(sprite01.getTriangle2(),sprite01.getTexture(),sprite01.getTexCoord2());
         //drawTriangle(mTriangle1Vertices,mTexture01,mCubeTextureCoordinates);
+
+        //iterate the list, update the sprite and draw them one by one, combining loop is more efficient
+        for (int i =0;i<numberOfSprites;i++){
+            Sprite temp; //make a reference variable
+            temp = spriteList.get(i); //obtain reference to the sprite
+            temp.update(); //update that sprite
+
+            Matrix.setIdentityM(mModelMatrix, 0); //reset model matrix
+            //the translate method directly snaps the primitive into the specified coordinate,
+            //it's not incremental
+            Matrix.translateM(mModelMatrix, 0,temp.getX(),temp.getY(),0);
+            Matrix.rotateM(mModelMatrix, 0, angleInDegrees, 0.0f, 0.0f, 1.0f);
+            Matrix.scaleM(mModelMatrix,0,scaleAmount,scaleAmount,scaleAmount);
+            drawTriangle(temp.getTriangle1(),temp.getTexture(),temp.getTexCoord1());
+            drawTriangle(temp.getTriangle2(),temp.getTexture(),temp.getTexCoord2());
+        }
 
         // Draw one translated a bit down and rotated to be flat on the ground.
         Matrix.setIdentityM(mModelMatrix, 0);

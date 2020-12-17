@@ -3,6 +3,7 @@ package com.example.myapplication;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
+import java.util.Random;
 
 public class Sprite {
 
@@ -107,6 +108,16 @@ public class Sprite {
         //this is where data is stored in that allocation
         mTriangle1TextureCoordinate.put(triangle1TextureCoordinateData).position(0);
         mTriangle2TextureCoordinate.put(triangle2TextureCoordinateData).position(0);
+
+        //randomize the speed
+        float min=0.0025f;
+        float max = 0.01f;
+        float delta = 0.0025f; //what is the resolution of the random values
+        hspeed = (float) (Math.random() * (max//this is max value
+                - min//this is min value
+                + delta)//this is the increment rate
+                + min); //this is also min value
+        vspeed = (float) (Math.random() * (max - min + delta) + min); // random from 50 to 250
     }
 
     void loadTextureInSprite(int _textureHandle){
