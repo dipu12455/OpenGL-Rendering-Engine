@@ -29,6 +29,13 @@ public class Sprite {
     /** This is a handle to our texture data. */
     private int textureHandle;
 
+    float prevX = 0;
+    float prevY = 0;
+    float x = 0.0f;
+    float y = 0.0f;
+    float hspeed = 0.025f;
+    float vspeed = 0.025f;
+
     public Sprite(){
 
         // Define points for these two triangles, these triangles are differently colored for now
@@ -120,5 +127,34 @@ public class Sprite {
     }
     FloatBuffer getTexCoord2(){
         return mTriangle2TextureCoordinate;
+    }
+
+    float getX(){
+        return x;
+    }
+
+    float getY(){
+        return y;
+    }
+
+    void update(){
+        prevX = x;
+        prevY = y;
+
+        x += hspeed;
+        y += vspeed;
+
+        if (x > 0.7f) {
+            hspeed = -hspeed;
+        }
+        if (x < -0.7f) {
+            hspeed = -hspeed;
+        }
+        if (y > 1.5f){
+            vspeed = -vspeed;
+        }
+        if (y < -1.5f){
+            vspeed = -vspeed;
+        }
     }
 }

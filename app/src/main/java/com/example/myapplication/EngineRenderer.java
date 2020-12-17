@@ -413,11 +413,17 @@ public class EngineRenderer implements GLSurfaceView.Renderer
         //float angleInDegrees = (360.0f / 10000.0f) * ((int) time);
         amount =0.001f;
 
+        //update the sprite
+        sprite01.update();
+
         //the order of transformation should be translate, rotate and scale
 
         // Draw the triangle facing straight on.
         Matrix.setIdentityM(mModelMatrix, 0);
-        Matrix.rotateM(mModelMatrix, 0, angleInDegrees, 0.0f, 1.0f, 0.0f);
+        //the translate method directly snaps the primitive into the specified coordinate,
+        //it's not incremental
+        Matrix.translateM(mModelMatrix, 0,sprite01.getX(),sprite01.getY(),0);
+        Matrix.rotateM(mModelMatrix, 0, angleInDegrees, 0.0f, 0.0f, 1.0f);
         float scaleAmount = 0.1f;
         Matrix.scaleM(mModelMatrix,0,scaleAmount,scaleAmount,scaleAmount);
         drawTriangle(sprite01.getTriangle1(),sprite01.getTexture(),sprite01.getTexCoord1());
