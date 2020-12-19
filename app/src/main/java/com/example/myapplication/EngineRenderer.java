@@ -8,6 +8,7 @@ import android.opengl.GLSurfaceView;
 import android.opengl.GLUtils;
 import android.opengl.Matrix;
 import android.os.SystemClock;
+import android.util.Log;
 import android.view.MotionEvent;
 
 import java.nio.ByteBuffer;
@@ -119,7 +120,7 @@ public class EngineRenderer implements GLSurfaceView.Renderer
 
     //sprite array
     ArrayList<Sprite> spriteList = new ArrayList<>();
-    int numberOfSprites = 100;
+    int numberOfSprites = 250;
 
     /**
      * Initialize the model data.
@@ -414,9 +415,9 @@ public class EngineRenderer implements GLSurfaceView.Renderer
         final float far = 10.0f;
 
 
-        Matrix.frustumM(mProjectionMatrix, 0, left, right, bottom, top, near, far);
+        //Matrix.frustumM(mProjectionMatrix, 0, left, right, bottom, top, near, far);
         //set an orthographic projection for 3d game rendering, we dont want size changing on z axis
-        //Matrix.orthoM(mProjectionMatrix, 0, left, right, bottom, top, near, far);
+        Matrix.orthoM(mProjectionMatrix, 0, left, right, bottom, top, near, far);
     }
 
     @Override
@@ -424,15 +425,14 @@ public class EngineRenderer implements GLSurfaceView.Renderer
     {
         GLES30.glClear(GLES30.GL_DEPTH_BUFFER_BIT | GLES30.GL_COLOR_BUFFER_BIT);
 
-        // Do a complete rotation every 10 seconds.
-        long time = SystemClock.uptimeMillis() % 10000L;
-        //float angleInDegrees = (360.0f / 10000.0f) * ((int) time);
+        long time = SystemClock.uptimeMillis();
+        //float angleInDegrees = (360.0f / 10000.0f) * ((int) time % 10000L); //the % 10000L limits the value under 10000, afte reaching that value, it jumps back to 0 and resets.
+        //Log.i("angle,time",Float.toString(angleInDegrees)+","+Long.toString(time));
+
         float scaleAmount = 0.1f;
 
         //update the sprite
-        sprite01.update();
-
-
+        sprite01.update(time);
 
         //the order of transformation should be translate, rotate and scale
 
@@ -452,7 +452,7 @@ public class EngineRenderer implements GLSurfaceView.Renderer
         for (int i =0;i<numberOfSprites;i++){
             Sprite temp; //make a reference variable
             temp = spriteList.get(i); //obtain reference to the sprite
-            temp.update(); //update that sprite
+            temp.update(time); //update that sprite
 
             Matrix.setIdentityM(mModelMatrix, 0); //reset model matrix
             //the translate method directly snaps the primitive into the specified coordinate,
