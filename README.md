@@ -8,3 +8,6 @@ Please download and install android studio into your system from the google webs
 
 You will see a bunch of squares bouncing around the screen. You can also touch-drag on the screen to rotate those squares.
 
+You can watch the following videos to get an idea of what they are:
+- [Video 1](https://youtu.be/nmjKbR5gDcg)
+- [Video 2](https://youtu.be/r8DvwYFimPk)
