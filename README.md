@@ -1,4 +1,4 @@
-#OpenGL Rendering Engine
+# OpenGL Rendering Engine
 
 A project that uses the OpenGL graphics API to print graphics on an android device. This project is a work in progress. So far, it can render 250 instances of a single sprite. This functional will be further upgraded to Objects using a sprite as its face on the renderer, while behaving according to what its code tells it to do.
 
